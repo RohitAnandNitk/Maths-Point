@@ -113,7 +113,7 @@ function Testimonial() {
             SUBMIT YOUR TESTIMONIAL
           </h2>
           <p className="text-gray-600 text-center mb-8">
-            Share your experience with EduAssess to help us improve
+            Share your experience with Maths Point to help us improve
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -206,7 +206,7 @@ function Testimonial() {
       >
         <h2 className="font-bold text-3xl mb-3">What Our Students Say</h2>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Discover how EduAssess has helped thousands of students achieve their
+          Discover how Maths Point has helped thousands of students achieve their
           academic goals.
         </p>
       </motion.div>

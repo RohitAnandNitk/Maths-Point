@@ -1,7 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { PieChart, Pie, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, ResponsiveContainer } from 'recharts';
-import { motion } from 'framer-motion';
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  PieChart,
+  Pie,
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  Cell,
+  ResponsiveContainer,
+} from "recharts";
+import { motion } from "framer-motion";
 
 const Result = () => {
   const location = useLocation();
@@ -10,103 +24,152 @@ const Result = () => {
   const [previousResults, setPreviousResults] = useState([]);
 
   useEffect(() => {
-    // Get all results
-    const allResults = JSON.parse(localStorage.getItem('examResults')) || [];
-    
-    // Get current result
-    const currentExamId = location.state?.examId;
-    if(currentExamId) {
-      console.log("Current exam ID:", currentExamId);
-    }
-    
-    const current = allResults.find(r => r.examId === currentExamId);
-    setCurrentResult(current);
+    const fetchResults = async () => {
+      try {
+        const res = await fetch(
+          "http://localhost:5000/attempt/get-all-attempts",
+          {
+            credentials: "include",
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
 
-    // Get previous results (excluding current)
-    const previous_result = allResults.filter(r => r.examId !== currentExamId);
-    
-    // Filter out any undefined or null values and limit to 6 results
-    const validPreviousResults = previous_result
-      .filter(result => result && result.date) // Make sure result exists and has a date
-      .slice(0, 6); // Take only the first 6 results
-      
-    setPreviousResults(validPreviousResults);
+        if (!res.ok) {
+          throw new Error("Failed to fetch attempts");
+        }
+
+        const data = await res.json();
+        const attempts = data.attempts || [];
+        console.log("All attempts", attempts);
+
+        const currentExamId = location.state?.examId;
+        console.log("current exam id :", currentExamId);
+        let current = null;
+
+        if (currentExamId) {
+          current = attempts.find(
+            (a) => String(a.test_id._id) === String(currentExamId)
+          );
+        }
+
+        if (!current && attempts.length > 0) {
+          current = attempts[0];
+        }
+
+        console.log("current result :", current.test_id.name);
+        setCurrentResult(current);
+
+        const previous = attempts
+          .filter((a) => String(a.test_id) !== String(currentExamId))
+          .slice(0, 6)
+          .map((a) => ({
+            examTitle: a.test_id?.name || "Unnamed Test",
+            date: a.completed_at || a.createdAt,
+            percentage: (a.score / a.answers.length) * 100 || 0,
+          }));
+
+        setPreviousResults(previous);
+      } catch (err) {
+        console.error("Error fetching results:", err);
+      }
+    };
+
+    fetchResults();
   }, [location]);
 
   if (!currentResult) {
-    return <div className='flex justify-center text-center font-bold text-3xl'>No test yet.</div>;
+    return (
+      <div className="text-center text-xl">Loading or no result found</div>
+    );
   }
 
-  // Prepare data for charts
+  const totalQuestions = currentResult.answers.length;
+  const correctAnswers = currentResult.score || 0;
+  const incorrectAnswers = currentResult.answers.filter(
+    (a) => !a.is_correct
+  ).length;
+  const unansweredQuestions = 0; // because `selected_option` is always required per schema
+
+  const percentage = ((correctAnswers / totalQuestions) * 100).toFixed(1);
+
+  const examTitle = currentResult.test_id?.name || "Unnamed Test";
+  const timeTaken = currentResult.duration_seconds || 0;
+
+  const questions = currentResult.answers.map((a, index) => ({
+    number: index + 1,
+    status: a.is_correct ? "correct" : "incorrect",
+    userAnswer: a.selected_option || "N/A",
+    correctAnswer: a.question_id?.correct_option || "N/A",
+    questionText: a.question_id?.text || "Question text not available",
+  }));
+
   const pieData = [
-    { name: 'Correct', value: currentResult.correctAnswers, color: '#3B82F6' },
-    { name: 'Incorrect', value: currentResult.incorrectAnswers, color: '#EF4444' },
-    { name: 'Unanswered', value: currentResult.unansweredQuestions, color: '#6B7280' }
+    { name: "Correct", value: correctAnswers, color: "#3B82F6" },
+    { name: "Incorrect", value: incorrectAnswers, color: "#EF4444" },
+    { name: "Unanswered", value: unansweredQuestions, color: "#6B7280" },
   ];
 
   const barData = [
-    { section: 'Correct', score: currentResult.correctAnswers },
-    { section: 'Incorrect', score: currentResult.incorrectAnswers },
-    { section: 'Unanswered', score: currentResult.unansweredQuestions }
+    { section: "Correct", score: correctAnswers },
+    { section: "Incorrect", score: incorrectAnswers },
+    { section: "Unanswered", score: unansweredQuestions },
   ];
 
-  // Safely create lineData, ensuring we only map over valid results
   const lineData = previousResults
-    .filter(result => result && result.date && result.percentage !== undefined)
-    .slice(-5)
-    .map(result => ({
-      date: new Date(result.date).toLocaleDateString(),
-      score: result.percentage
+    .filter((r) => r.date && r.percentage !== undefined)
+    .map((r) => ({
+      date: new Date(r.date).toLocaleDateString(),
+      score: r.percentage,
     }));
 
   const handleTakeAnotherTest = () => {
-    navigate('/exam');
+    navigate("/exam");
   };
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
+      transition: { staggerChildren: 0.1 },
+    },
   };
 
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1
-    }
+    visible: { y: 0, opacity: 1 },
   };
 
   return (
     <div className="min-h-screen bg-gray-50 w-full py-8">
       <div className="container mx-auto px-4">
-        <motion.div 
+        <motion.div
           className="grid grid-cols-1 lg:grid-cols-4 gap-8"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
-          {/* Sidebar with Previous Tests */}
-          <motion.div 
+          {/* Sidebar - Previous Tests */}
+          <motion.div
             className="lg:col-span-1 bg-white rounded-xl shadow-lg p-6"
             variants={itemVariants}
           >
-            <h3 className="text-xl font-bold mb-6 text-gray-800">Previous Tests</h3>
+            <h3 className="text-xl font-bold mb-6 text-gray-800">
+              Previous Tests
+            </h3>
             <div className="space-y-4">
               {previousResults.length > 0 ? (
                 previousResults.map((result, index) => (
-                  <motion.div 
-                    key={index} 
+                  <motion.div
+                    key={index}
                     className="bg-gray-50 p-4 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer border border-gray-100"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <div className="font-semibold text-gray-800">{result.examTitle || "Unnamed Test"}</div>
+                    <div className="font-semibold text-gray-800">
+                      {result.examTitle}
+                    </div>
                     <div className="text-sm text-gray-500 mt-1">
                       {new Date(result.date).toLocaleDateString()}
                     </div>
@@ -116,52 +179,54 @@ const Result = () => {
                   </motion.div>
                 ))
               ) : (
-                <div className="text-gray-500 text-center py-4">No previous tests</div>
+                <div className="text-gray-500 text-center py-4">
+                  No previous tests
+                </div>
               )}
             </div>
           </motion.div>
 
-          {/* Main Result Section */}
-          <motion.div 
+          {/* Main Content */}
+          <motion.div
             className="lg:col-span-3 bg-white rounded-xl shadow-lg p-8"
             variants={itemVariants}
           >
-            {/* Result Summary */}
-            <motion.div 
-              className="mb-8"
-              variants={itemVariants}
-            >
-              <h1 className="text-3xl font-bold mb-6 text-gray-800">{currentResult.examTitle}</h1>
+            {/* Summary */}
+            <motion.div className="mb-8" variants={itemVariants}>
+              <h1 className="text-3xl font-bold mb-6 text-gray-800">
+                {examTitle}
+              </h1>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-blue-600 text-white p-6 rounded-xl shadow-md">
                   <div className="text-2xl font-bold">
-                    {currentResult.correctAnswers}/{currentResult.totalQuestions}
+                    {correctAnswers}/{totalQuestions}
                   </div>
                   <div className="text-sm opacity-90">Total Score</div>
                 </div>
                 <div className="bg-gray-50 p-6 rounded-xl shadow-md">
                   <div className="text-2xl font-bold text-blue-600">
-                    {currentResult.percentage.toFixed(1)}%
+                    {percentage}%
                   </div>
                   <div className="text-sm text-gray-600">Percentage</div>
                 </div>
                 <div className="bg-gray-50 p-6 rounded-xl shadow-md">
                   <div className="text-2xl font-bold text-blue-600">
-                    {Math.floor(currentResult.timeTaken / 60)} mins
+                    {Math.floor(timeTaken / 60)} mins
                   </div>
                   <div className="text-sm text-gray-600">Time Taken</div>
                 </div>
               </div>
             </motion.div>
 
-            {/* Charts Section */}
-            <motion.div 
+            {/* Charts */}
+            <motion.div
               className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
               variants={itemVariants}
             >
-              {/* Pie Chart */}
               <div className="bg-gray-50 rounded-xl p-6 shadow-md">
-                <h3 className="text-lg font-semibold mb-4 text-gray-800">Question Distribution</h3>
+                <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                  Question Distribution
+                </h3>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -174,8 +239,8 @@ const Result = () => {
                         fill="#8884d8"
                         dataKey="value"
                       >
-                        {pieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        {pieData.map((e, i) => (
+                          <Cell key={`cell-${i}`} fill={e.color} />
                         ))}
                       </Pie>
                       <Tooltip />
@@ -185,9 +250,10 @@ const Result = () => {
                 </div>
               </div>
 
-              {/* Bar Chart */}
               <div className="bg-gray-50 rounded-xl p-6 shadow-md">
-                <h3 className="text-lg font-semibold mb-4 text-gray-800">Performance Breakdown</h3>
+                <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                  Performance Breakdown
+                </h3>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={barData}>
@@ -201,9 +267,10 @@ const Result = () => {
                 </div>
               </div>
 
-              {/* Line Chart */}
               <div className="bg-gray-50 rounded-xl p-6 shadow-md">
-                <h3 className="text-lg font-semibold mb-4 text-gray-800">Recent Performance</h3>
+                <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                  Recent Performance
+                </h3>
                 <div className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={lineData}>
@@ -219,33 +286,37 @@ const Result = () => {
             </motion.div>
 
             {/* Question Breakdown */}
-            <motion.div 
-              className="mb-8"
-              variants={itemVariants}
-            >
-              <h3 className="text-xl font-semibold mb-4 text-gray-800">Detailed Question Breakdown</h3>
+            <motion.div className="mb-8" variants={itemVariants}>
+              <h3 className="text-xl font-semibold mb-4 text-gray-800">
+                Detailed Question Breakdown
+              </h3>
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
                     <tr className="bg-gray-50">
-                      <th className="border p-3 text-left">Question No.</th>
+                      <th className="border p-3 text-left">#</th>
+                      <th className="border p-3 text-left">Question</th>
                       <th className="border p-3 text-left">Status</th>
                       <th className="border p-3 text-left">Your Answer</th>
                       <th className="border p-3 text-left">Correct Answer</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {currentResult.questions.map((question) => (
-                      <tr key={question.number} className="hover:bg-gray-50">
-                        <td className="border p-3">{question.number}</td>
-                        <td className={`border p-3 font-semibold ${
-                          question.status === 'correct' ? 'text-green-600' : 
-                          question.status === 'incorrect' ? 'text-red-600' : 'text-gray-600'
-                        }`}>
-                          {question.status.charAt(0).toUpperCase() + question.status.slice(1)}
+                    {questions.map((q) => (
+                      <tr key={q.number} className="hover:bg-gray-50">
+                        <td className="border p-3">{q.number}</td>
+                        <td className="border p-3">{q.questionText}</td>
+                        <td
+                          className={`border p-3 font-semibold ${
+                            q.status === "correct"
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {q.status.charAt(0).toUpperCase() + q.status.slice(1)}
                         </td>
-                        <td className="border p-3">{question.userAnswer}</td>
-                        <td className="border p-3">{question.correctAnswer}</td>
+                        <td className="border p-3">{q.userAnswer}</td>
+                        <td className="border p-3">{q.correctAnswer}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -253,19 +324,20 @@ const Result = () => {
               </div>
             </motion.div>
 
-            {/* Action Buttons */}
-            <motion.div 
+            <motion.div
               className="flex justify-center space-x-4"
               variants={itemVariants}
             >
-              <button 
-                onClick={() => navigate(`/test?examId=${currentResult.examId}`)}
+              <button
+                onClick={() =>
+                  navigate(`/test?examId=${currentResult.test_id._id}`)
+                }
                 className="border-2 border-blue-600 text-blue-600 px-8 py-3 rounded-lg hover:bg-blue-50 transition-colors font-semibold"
               >
                 Retake Test
               </button>
-              <button 
-                onClick={handleTakeAnotherTest} 
+              <button
+                onClick={handleTakeAnotherTest}
                 className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
               >
                 Take Another Test

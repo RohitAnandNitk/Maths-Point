@@ -1,20 +1,34 @@
-const jwt = require('jsonwebtoken')
-const secret_key = '$uperman1235';
+const jwt = require("jsonwebtoken");
+const secret_key = "$uperman1235";
 
-function authMiddleware(req, res, next){
-    const token = req.cookies.token;
+function authMiddleware(req, res, next) {
+  let token;
 
-    if(!token){
-        return res.status(401).json({msg: 'Unauthorized'});
+  // check cookies
+  if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  }
+  // console.log("Token in auth : ", token);
+  // check Authorization header
+  if (!token && req.headers.authorization) {
+    const authHeader = req.headers.authorization;
+    if (authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
     }
+  }
 
-    try{
-        const user = jwt.verify(token, secret_key);
-        req.user = user;
-        next();
-    }catch(err){
-        return res.status(401).json({msg: 'Unauthorized'});
-    }
+  if (!token) {
+    return res.status(401).json({ msg: "Unauthorized: No token provided" });
+  }
+
+  try {
+    const user = jwt.verify(token, secret_key);
+    req.user = user; // 👈 here we attach it
+    next();
+  } catch (err) {
+    console.error("JWT verification error:", err);
+    return res.status(401).json({ msg: "Unauthorized: Invalid token" });
+  }
 }
 
 module.exports = authMiddleware;

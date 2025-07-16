@@ -100,7 +100,7 @@ function Signin() {
                 >
                     <div className="text-center">
                         <h1 className="text-2xl font-bold text-gray-800">Sign in to your account</h1>
-                        <p className="mt-2 text-sm text-gray-600">WELCOME BACK TO EDUASSESS</p>
+                        <p className="mt-2 text-sm text-gray-600">WELCOME BACK TO Maths Point</p>
                     </div>
                     <div className="flex justify-between items-center mt-4">
                         <button

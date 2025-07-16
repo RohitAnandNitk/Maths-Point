@@ -121,63 +121,80 @@ const Test = () => {
     }
   };
 
-  const handleSubmitTest = () => {
-    // Calculate results
-    const totalQuestions = questions.length;
-    let correctAnswers = 0;
-    let incorrectAnswers = 0;
-    let unansweredQuestions = 0;
+  const handleSubmitTest = async () => {
+    try {
+      const totalQuestions = questions.length;
+      let correctAnswers = 0;
+      let incorrectAnswers = 0;
+      let unansweredQuestions = 0;
 
-    // Calculate scores
-    questions.forEach((question) => {
-      const userAnswer = answeredQuestions[question.number];
-      console.log(userAnswer);
-      
-      if (!userAnswer) {
-        unansweredQuestions++;
-      } else if (userAnswer === question.correctAnswer) {
-        correctAnswers++;
-      } else {
-        incorrectAnswers++;
+      const answersForBackend = [];
+
+      // build answers and stats
+      questions.forEach((question) => {
+        const userAnswer = answeredQuestions[question.number];
+
+        if (!userAnswer) {
+          unansweredQuestions++;
+        } else if (userAnswer === question.correctAnswer) {
+          correctAnswers++;
+        } else {
+          incorrectAnswers++;
+        }
+
+        answersForBackend.push({
+          question_id: question.id,  // ✅ fixed: use .id
+          selected_option: userAnswer || null,
+        });
+      });
+
+      const timeTakenSeconds = (testData.duration * 60) - timeRemaining;
+
+      const payload = {
+        test_id: testData._id,
+        answers: answersForBackend,
+        time_taken: timeTakenSeconds,  // optional if backend expects
+      };
+
+      // 🧪 debug logs
+      console.log("✅ Submitting test with payload:", payload);
+      console.table(answersForBackend);
+
+      const res = await fetch("http://localhost:5000/attempt/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errMsg = await res.text();
+        console.error("❌ Failed to save attempt:", errMsg);
+        alert("Failed to save attempt. Please try again.");
+        return;
       }
-    });
 
-    // Calculate percentage
-    const percentage = totalQuestions > 0 ? (correctAnswers / totalQuestions) * 100 : 0;
+      const data = await res.json();
 
-    // Create result object
-    const result = {
-      examId: testData._id,
-      examTitle: testData.name,
-      date: new Date().toISOString(),
-      totalQuestions,
-      correctAnswers,
-      incorrectAnswers,
-      unansweredQuestions,
-      percentage,
-      timeTaken: (testData.duration * 60) - timeRemaining, // Time taken in seconds
-      questions: questions.map((q) => ({
-        number: q.number,
-        question: q.question,
-        userAnswer: answeredQuestions[q.number] || '-',
-        correctAnswer: q.correctAnswer,
-        status: !answeredQuestions[q.number] ? 'unanswered' :
-          answeredQuestions[q.number] === q.correctAnswer ? 'correct' : 'incorrect'
-      }))
-    };
+      console.log("✅ Attempt saved successfully:", data);
 
-    // Get existing results
-    const existingResults = JSON.parse(localStorage.getItem('examResults')) || [];
-
-    // Add new result
-    const updatedResults = [...existingResults, result];
-
-    // Save to localStorage
-    localStorage.setItem('examResults', JSON.stringify(updatedResults));
-
-    // Navigate to results page with the exam ID
-    navigate('/results', { state: { examId: result.examId } });
+      // Navigate to results page
+      navigate("/results", {
+        state: {
+          examId: testData._id,
+          attemptId: data.attempt._id,
+        },
+      });
+    } catch (err) {
+      console.error("❌ Error submitting test:", err);
+      alert("Something went wrong while submitting the test.");
+    }
   };
+
+
 
   // Update this function to track answered questions
   const handleAnswerSelection = (option) => {

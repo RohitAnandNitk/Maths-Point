@@ -1,21 +1,19 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import logo from '../assets/avatar.png'
-
+import React from "react";
+import { motion } from "framer-motion";
 
 function FounderCard({ name, role, description, image }) {
   return (
     <motion.div
       variants={{
         hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 }
+        visible: { opacity: 1, y: 0 },
       }}
       whileHover={{ y: -5 }}
       className="bg-white rounded-xl shadow-lg p-6 text-center max-w-sm"
     >
-      <motion.img 
-        src={logo} 
-        alt={name} 
+      <motion.img
+        src={image}
+        alt={name}
         className="w-24 h-24 mx-auto rounded-full mb-4 object-cover"
         whileHover={{ scale: 1.05 }}
       />

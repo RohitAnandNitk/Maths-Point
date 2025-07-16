@@ -40,7 +40,7 @@ function Signup() {
             // Explicitly set the role based on the active button
             const roleToUse = studentActive ? 'student' : 'teacher';
             
-            const response = await fetch('http://localhost:5000/api/user/signup', {
+            const response = await fetch('http://Maths Pointhost:5000/api/user/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -87,7 +87,7 @@ function Signup() {
             >
                 <div className="text-center">
                     <h1 className="text-2xl font-bold text-gray-800">Create your account</h1>
-                    <p className="mt-2 text-sm text-gray-600">Join EduAssess to get started</p>
+                    <p className="mt-2 text-sm text-gray-600">Join Maths Point to get started</p>
                 </div>
 
                 {/* Show error message if exists */}

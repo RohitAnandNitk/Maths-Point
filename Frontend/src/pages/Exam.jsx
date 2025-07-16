@@ -3,8 +3,10 @@ import ExamCard from "../components/ExamCard";
 import { motion, AnimatePresence } from "framer-motion";
 import Loading from "../components/Loading";
 
-const ExamPage = () => {
 
+
+const ExamPage = () => {
+ 
   const descrip = {
     mathematics: "Assesses problem-solving skills and mathematical concepts.",
     science: "Evaluates understanding of scientific principles and reasoning.",

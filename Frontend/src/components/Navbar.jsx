@@ -43,6 +43,7 @@ function Navbar() {
         credentials: 'include' // Important for sending cookies
       });
       const data = await response.json();
+      console.log("is autjentic : ", data.isAuthenticated);
       setIsAuthenticated(data.isAuthenticated);
     } catch (error) {
       console.error('Auth check failed:', error);
@@ -111,9 +112,9 @@ function Navbar() {
       <div className="max-w-screen-xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
-          <img src={logo} alt="EduAssess" className="w-10 h-10 mr-4" />
+          <img src={logo} alt="Maths Point" className="w-10 h-10 mr-4" />
           <Link to="/" className="text-xl font-bold text-blue-600">
-            EduAccess
+            Maths Point
           </Link>
         </div>
 
@@ -148,15 +149,15 @@ function Navbar() {
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   <Link to="/exam/upsc" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
-                    UPSC
+                    JEE
                   </Link>
                   <Link to="/exam/gate" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
-                    GATE
+                    NIMCET
                   </Link>
                   <Link to="/exam/cat" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
-                    CAT
+                    NDA
                   </Link>
-                  <Link to="/exam/jee" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
+                  {/* <Link to="/exam/jee" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
                     JEE
                   </Link>
                   <Link to="/exam/neet" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
@@ -164,7 +165,7 @@ function Navbar() {
                   </Link>
                   <Link to="/exam/ssc" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
                     SSC
-                  </Link>
+                  </Link> */}
                 </div>
               </motion.div>
             )}
@@ -199,17 +200,17 @@ function Navbar() {
                 </h3>
                 <div className="flex flex-col space-y-2">
                   <Link to="/test-series/upsc" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
-                    UPSC Test Series
+                  JEE Test Series
                   </Link>
                   <Link to="/test-series/gate" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
-                    GATE Test Series
+                    NIMCET Test Series
                   </Link>
                   <Link to="/test-series/cat" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
-                    CAT Test Series
+                    NDA Test Series
                   </Link>
-                  <Link to="/test-series/jee" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
+                  {/* <Link to="/test-series/jee" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
                     JEE Test Series
-                  </Link>
+                  </Link> */}
                 </div>
               </motion.div>
             )}
