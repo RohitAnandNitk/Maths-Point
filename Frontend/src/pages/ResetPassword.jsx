@@ -1,28 +1,33 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Lock, Eye, EyeOff, Check, AlertTriangle } from 'lucide-react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Lock, Eye, EyeOff, Check, AlertTriangle } from "lucide-react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+
+import config from "../config";
+const BaseURL = config.BASE_URL;
 
 function ResetPassword() {
   const [passwords, setPasswords] = useState({
-    password: '',
-    confirmPassword: '',
+    password: "",
+    confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [status, setStatus] = useState('idle'); // idle, loading, success, error
-  const [message, setMessage] = useState('');
-  const [token, setToken] = useState('');
+  const [status, setStatus] = useState("idle"); // idle, loading, success, error
+  const [message, setMessage] = useState("");
+  const [token, setToken] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
     // Extract token from URL query parameters
     const queryParams = new URLSearchParams(location.search);
-    const resetToken = queryParams.get('token');
-    
+    const resetToken = queryParams.get("token");
+
     if (!resetToken) {
-      setStatus('error');
-      setMessage('Invalid or missing reset token. Please request a new password reset link.');
+      setStatus("error");
+      setMessage(
+        "Invalid or missing reset token. Please request a new password reset link."
+      );
     } else {
       setToken(resetToken);
     }
@@ -37,63 +42,65 @@ function ResetPassword() {
 
   const validatePasswords = () => {
     if (passwords.password.length < 6) {
-      setStatus('error');
-      setMessage('Password must be at least 6 characters long');
+      setStatus("error");
+      setMessage("Password must be at least 6 characters long");
       return false;
     }
-    
+
     if (passwords.password !== passwords.confirmPassword) {
-      setStatus('error');
-      setMessage('Passwords do not match');
+      setStatus("error");
+      setMessage("Passwords do not match");
       return false;
     }
-    
+
     return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validatePasswords()) {
       return;
     }
-    
+
     try {
-      setStatus('loading');
-      
-      const response = await fetch('http://Maths Pointhost:5000/api/user/reset-password', {
-        method: 'POST',
+      setStatus("loading");
+
+      const response = await fetch(`${BaseURL}/api/user/reset-password`, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           token,
           password: passwords.password,
         }),
       });
-      
+
       const data = await response.json();
-      
+
       if (response.ok) {
-        setStatus('success');
-        setMessage(data.message || 'Password has been reset successfully');
-        
+        setStatus("success");
+        setMessage(data.message || "Password has been reset successfully");
+
         // Redirect to login page after 3 seconds
         setTimeout(() => {
-          navigate('/signin');
+          navigate("/signin");
         }, 3000);
       } else {
-        setStatus('error');
-        setMessage(data.message || 'Failed to reset password. Please try again.');
+        setStatus("error");
+        setMessage(
+          data.message || "Failed to reset password. Please try again."
+        );
       }
     } catch (error) {
-      console.error('Reset password error:', error);
-      setStatus('error');
-      setMessage('Network error. Please check your connection and try again.');
+      console.error("Reset password error:", error);
+      setStatus("error");
+      setMessage("Network error. Please check your connection and try again.");
     }
   };
 
-  if (status === 'error' && !token) {
+  if (status === "error" && !token) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-white">
         <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
@@ -101,11 +108,16 @@ function ResetPassword() {
             <div className="w-12 h-12 flex items-center justify-center bg-red-100 rounded-full mb-4">
               <AlertTriangle className="w-6 h-6 text-red-600" />
             </div>
-            <h3 className="text-lg font-medium text-red-800">Invalid Reset Link</h3>
+            <h3 className="text-lg font-medium text-red-800">
+              Invalid Reset Link
+            </h3>
             <p className="mt-2 text-center text-sm text-red-600">{message}</p>
           </div>
           <div className="mt-6 text-center">
-            <Link to="/forgot-password" className="text-blue-600 hover:underline">
+            <Link
+              to="/forgot-password"
+              className="text-blue-600 hover:underline"
+            >
               Request a new password reset
             </Link>
           </div>
@@ -123,28 +135,39 @@ function ResetPassword() {
         className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg"
       >
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800">Reset your password</h1>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Reset your password
+          </h1>
           <p className="mt-2 text-sm text-gray-600">
             Please enter your new password
           </p>
         </div>
 
-        {status === 'success' ? (
+        {status === "success" ? (
           <div className="mt-8">
             <div className="flex flex-col items-center justify-center p-6 bg-green-50 rounded-lg">
               <div className="w-12 h-12 flex items-center justify-center bg-green-100 rounded-full mb-4">
                 <Check className="w-6 h-6 text-green-600" />
               </div>
-              <h3 className="text-lg font-medium text-green-800">Password Reset Successful</h3>
-              <p className="mt-2 text-center text-sm text-green-600">{message}</p>
-              <p className="mt-4 text-center text-sm text-gray-600">Redirecting to login page...</p>
+              <h3 className="text-lg font-medium text-green-800">
+                Password Reset Successful
+              </h3>
+              <p className="mt-2 text-center text-sm text-green-600">
+                {message}
+              </p>
+              <p className="mt-4 text-center text-sm text-gray-600">
+                Redirecting to login page...
+              </p>
             </div>
           </div>
         ) : (
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             {/* New Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 New Password
               </label>
               <div className="relative mt-1 rounded-md shadow-sm">
@@ -176,7 +199,10 @@ function ResetPassword() {
 
             {/* Confirm Password Field */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Confirm Password
               </label>
               <div className="relative mt-1 rounded-md shadow-sm">
@@ -196,22 +222,20 @@ function ResetPassword() {
               </div>
             </div>
 
-            {status === 'error' && (
-              <div className="text-red-600 text-sm text-center">
-                {message}
-              </div>
+            {status === "error" && (
+              <div className="text-red-600 text-sm text-center">{message}</div>
             )}
 
             <motion.button
               type="submit"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              disabled={status === 'loading'}
+              disabled={status === "loading"}
               className={`w-full py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                status === 'loading' ? 'opacity-70 cursor-not-allowed' : ''
+                status === "loading" ? "opacity-70 cursor-not-allowed" : ""
               }`}
             >
-              {status === 'loading' ? 'Resetting...' : 'Reset Password'}
+              {status === "loading" ? "Resetting..." : "Reset Password"}
             </motion.button>
           </form>
         )}
@@ -220,4 +244,4 @@ function ResetPassword() {
   );
 }
 
-export default ResetPassword; 
+export default ResetPassword;

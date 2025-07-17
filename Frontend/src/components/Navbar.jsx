@@ -3,9 +3,12 @@ import { rippleEffect } from "../utils/rippleEffect";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import logo from '../assets/logo.png'
-import Cookies from 'js-cookie';
+import logo from "../assets/logo.png";
+import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
+
+import config from "../config";
+const BaseURL = config.BASE_URL;
 
 function Navbar() {
   const [isExamOpen, setIsExamOpen] = useState(false);
@@ -14,24 +17,27 @@ function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const [user, setUser] = useState('');
-  const [role, setRole] = useState('');
+  const [user, setUser] = useState("");
+  const [role, setRole] = useState("");
   // Check auth status when component mounts
   useEffect(() => {
     checkAuthStatus();
   }, []);
 
   useEffect(() => {
-    const token = Cookies.get('token');
+    const token = Cookies.get("token");
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        setUser(decoded.fullname.charAt(0).toUpperCase() + decoded.fullname.slice(1).toLowerCase());
+        setUser(
+          decoded.fullname.charAt(0).toUpperCase() +
+            decoded.fullname.slice(1).toLowerCase()
+        );
         console.log(decoded.fullname);
-        setRole(decoded.role.charAt(0).toUpperCase())
+        setRole(decoded.role.charAt(0).toUpperCase());
       } catch (error) {
-        setUser('')
-        setRole('')
+        setUser("");
+        setRole("");
         console.error("Token decode error:", error);
       }
     }
@@ -39,19 +45,19 @@ function Navbar() {
 
   const checkAuthStatus = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/user/check-auth', {
-        credentials: 'include' // Important for sending cookies
+      const response = await fetch(`${BaseURL}/api/user/check-auth`, {
+        credentials: "include", // Important for sending cookies
       });
       const data = await response.json();
       console.log("is autjentic : ", data.isAuthenticated);
       setIsAuthenticated(data.isAuthenticated);
     } catch (error) {
-      console.error('Auth check failed:', error);
+      console.error("Auth check failed:", error);
       setIsAuthenticated(false);
     }
   };
 
-  //glass 
+  //glass
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 10) {
@@ -61,9 +67,9 @@ function Navbar() {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  })
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  });
 
   // Check if current path is signin or signup
   const isSigninActive = location.pathname === "/signin";
@@ -90,25 +96,28 @@ function Navbar() {
   // Handle sign out
   const handleSignOut = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/user/logout', {
-        method: 'POST',
-        credentials: 'include'
+      const response = await fetch(`${BaseURL}/api/user/logout`, {
+        method: "POST",
+        credentials: "include",
       });
 
       if (response.ok) {
         setIsAuthenticated(false);
-        navigate('/signin');
+        navigate("/signin");
       }
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     }
   };
 
   return (
-    <nav className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled
-      ? 'bg-white/50 backdrop-blur-md shadow-xs'
-      : 'bg-white shadow-sm'
-      }`}>
+    <nav
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        isScrolled
+          ? "bg-white/50 backdrop-blur-md shadow-xs"
+          : "bg-white shadow-sm"
+      }`}
+    >
       <div className="max-w-screen-xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
@@ -148,13 +157,22 @@ function Navbar() {
                   Competitive Exams
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <Link to="/exam/upsc" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
+                  <Link
+                    to="/exam/upsc"
+                    className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition"
+                  >
                     JEE
                   </Link>
-                  <Link to="/exam/gate" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
+                  <Link
+                    to="/exam/gate"
+                    className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition"
+                  >
                     NIMCET
                   </Link>
-                  <Link to="/exam/cat" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
+                  <Link
+                    to="/exam/cat"
+                    className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition"
+                  >
                     NDA
                   </Link>
                   {/* <Link to="/exam/jee" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
@@ -199,13 +217,22 @@ function Navbar() {
                   Available Test Series
                 </h3>
                 <div className="flex flex-col space-y-2">
-                  <Link to="/test-series/upsc" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
-                  JEE Test Series
+                  <Link
+                    to="/test-series/upsc"
+                    className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition"
+                  >
+                    JEE Test Series
                   </Link>
-                  <Link to="/test-series/gate" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
+                  <Link
+                    to="/test-series/gate"
+                    className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition"
+                  >
                     NIMCET Test Series
                   </Link>
-                  <Link to="/test-series/cat" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
+                  <Link
+                    to="/test-series/cat"
+                    className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition"
+                  >
                     NDA Test Series
                   </Link>
                   {/* <Link to="/test-series/jee" className="block bg-gray-100 px-4 py-2 rounded-lg hover:bg-blue-100 transition">
@@ -225,8 +252,8 @@ function Navbar() {
           <Link to="/about" className="text-gray-600 hover:text-blue-600">
             About
           </Link>
-          <Link to='/profile' className="text-gray-600 hover:text-blue-600">
-          Profile
+          <Link to="/profile" className="text-gray-600 hover:text-blue-600">
+            Profile
           </Link>
         </div>
 
@@ -236,27 +263,30 @@ function Navbar() {
             <>
               <button
                 onClick={handleLoginClick}
-                className={`px-4 py-2 rounded transition-colors duration-200 ripple-container ${isSigninActive
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:text-blue-600'
-                  }`}
+                className={`px-4 py-2 rounded transition-colors duration-200 ripple-container ${
+                  isSigninActive
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-600 hover:text-blue-600"
+                }`}
               >
                 Login
               </button>
               <button
                 onClick={handleSignupClick}
-                className={`px-4 py-2 rounded transition-colors duration-200 ripple-container ${isSignupActive
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:text-blue-600'
-                  }`}
+                className={`px-4 py-2 rounded transition-colors duration-200 ripple-container ${
+                  isSignupActive
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-600 hover:text-blue-600"
+                }`}
               >
                 Sign Up
               </button>
             </>
           ) : (
             <>
-
-              <span className="text-gray-500 hover:text-gray-600 font-semibold font-sans">Welcome, {user}</span>
+              <span className="text-gray-500 hover:text-gray-600 font-semibold font-sans">
+                Welcome, {user}
+              </span>
 
               <div className="flex items-center justify-center">
                 <p className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-400 text-white">

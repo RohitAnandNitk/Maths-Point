@@ -17,6 +17,9 @@ import {
 } from "recharts";
 import { motion } from "framer-motion";
 
+import config from "../config";
+const BaseURL = config.BASE_URL;
+
 const Result = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -26,15 +29,12 @@ const Result = () => {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const res = await fetch(
-          "http://localhost:5000/attempt/get-all-attempts",
-          {
-            credentials: "include",
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        const res = await fetch(`${BaseURL}/attempt/get-all-attempts`, {
+          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
 
         if (!res.ok) {
           throw new Error("Failed to fetch attempts");

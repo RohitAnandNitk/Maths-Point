@@ -3,15 +3,15 @@ import ExamCard from "../components/ExamCard";
 import { motion, AnimatePresence } from "framer-motion";
 import Loading from "../components/Loading";
 
-
+import config from "../config";
+const BaseURL = config.BASE_URL;
 
 const ExamPage = () => {
- 
   const descrip = {
     mathematics: "Assesses problem-solving skills and mathematical concepts.",
     science: "Evaluates understanding of scientific principles and reasoning.",
-    english:"Tests language skills, grammar, and comprehension abilities."
-  }
+    english: "Tests language skills, grammar, and comprehension abilities.",
+  };
   const [filters, setFilters] = useState({
     subject: [],
     questionType: "",
@@ -26,18 +26,18 @@ const ExamPage = () => {
     const fetchTests = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch('http://localhost:5000/api/tests', {
-          credentials: 'include'
+        const response = await fetch(`${BaseURL}/api/tests`, {
+          credentials: "include",
         });
-        
+
         if (!response.ok) {
-          throw new Error('Failed to fetch tests');
+          throw new Error("Failed to fetch tests");
         }
-        
+
         const data = await response.json();
         setTests(data.tests || []);
       } catch (error) {
-        console.error('Error fetching tests:', error);
+        console.error("Error fetching tests:", error);
         setError(error.message);
       } finally {
         setIsLoading(false);
@@ -48,13 +48,14 @@ const ExamPage = () => {
   }, []);
 
   // Get unique subjects, question types, and durations from tests
-  const subjects = [...new Set(tests.map(test => test.description))];
-  const durations = [...new Set(tests.map(test => `${test.duration} min`))];
+  const subjects = [...new Set(tests.map((test) => test.description))];
+  const durations = [...new Set(tests.map((test) => `${test.duration} min`))];
 
   // Filter tests based on selected filters
   const filteredTests = tests.filter((test) => {
     const subjectMatch =
-      filters.subject.length === 0 || filters.subject.includes(test.description);
+      filters.subject.length === 0 ||
+      filters.subject.includes(test.description);
     const timeLimitMatch =
       !filters.timeLimit || `${test.duration} min` === filters.timeLimit;
     return subjectMatch && timeLimitMatch;
@@ -63,20 +64,20 @@ const ExamPage = () => {
   // Handle test deletion
   const handleTestDelete = async (testId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/tests/${testId}`, {
-        method: 'DELETE',
-        credentials: 'include'
+      const response = await fetch(`${BaseURL}/api/tests/${testId}`, {
+        method: "DELETE",
+        credentials: "include",
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to delete test');
+        throw new Error("Failed to delete test");
       }
-      
+
       // Update the tests list
-      setTests(prev => prev.filter(test => test._id !== testId));
+      setTests((prev) => prev.filter((test) => test._id !== testId));
     } catch (error) {
-      console.error('Error deleting test:', error);
-      alert('Failed to delete test: ' + error.message);
+      console.error("Error deleting test:", error);
+      alert("Failed to delete test: " + error.message);
     }
   };
 
@@ -127,7 +128,9 @@ const ExamPage = () => {
                         id={time}
                         name="duration"
                         className="mr-2"
-                        onChange={() => setFilters({ ...filters, timeLimit: time })}
+                        onChange={() =>
+                          setFilters({ ...filters, timeLimit: time })
+                        }
                       />
                       <label htmlFor={time}>{time}</label>
                     </div>
@@ -151,7 +154,7 @@ const ExamPage = () => {
               <AnimatePresence>
                 {filteredTests.length > 0 ? (
                   filteredTests.map((test) => (
-                    <ExamCard 
+                    <ExamCard
                       key={test._id}
                       exam={{
                         id: test._id,
@@ -159,15 +162,19 @@ const ExamPage = () => {
                         subject: test.description,
                         timeLimit: `${test.duration} min`,
                         icon: "🎓",
-                        description: `${descrip[test.description.toLowerCase()]}`,
+                        description: `${
+                          descrip[test.description.toLowerCase()]
+                        }`,
                         // description: `${test.description} test created by ${test.creator?.fullname || 'Anonymous'}`,
-                        createdAt: new Date(test.createdAt).toLocaleDateString()
+                        createdAt: new Date(
+                          test.createdAt
+                        ).toLocaleDateString(),
                       }}
                       onDelete={() => handleTestDelete(test._id)}
                     />
                   ))
                 ) : (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="md:col-span-3 text-center py-8 text-gray-500"

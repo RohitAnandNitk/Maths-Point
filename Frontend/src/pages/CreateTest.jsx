@@ -5,6 +5,10 @@ import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 
+import config from "../config";
+const BaseURL = config.BASE_URL;
+
+
 function CreateTest() {
   const navigate = useNavigate();
   const [questions, setQuestions] = useState([1]);
@@ -152,7 +156,7 @@ function CreateTest() {
 
     try {
       // Step 1: Create the test in the database
-      const testResponse = await fetch("http://localhost:5000/api/tests", {
+      const testResponse = await fetch(`${BaseURL}/api/tests`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -183,7 +187,7 @@ function CreateTest() {
         if (!question.question.trim()) continue;
 
         const questionResponse = await fetch(
-          `http://localhost:5000/api/questions/${testId}`,
+          `${BaseURL}/api/questions/${testId}`,
           {
             method: "POST",
             headers: {

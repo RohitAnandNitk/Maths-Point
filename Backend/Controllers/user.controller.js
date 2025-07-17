@@ -6,6 +6,8 @@ const secret_key = "$uperman1235";
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 
+require("dotenv").config();
+
 async function handleSignIn(req, res) {
   try {
     const { email, password, role } = req.body;
@@ -61,7 +63,7 @@ async function handleSignIn(req, res) {
     res.cookie("token", token, {
       httpOnly: false,
       maxAge: 60 * 24 * 60 * 60 * 1000, // 60 days in milliseconds
-      sameSite: "lax",
+      sameSite: "none",
       path: "/",
       secure: process.env.NODE_ENV === "production",
     });
@@ -142,7 +144,7 @@ async function handleSignUp(req, res) {
     res.cookie("token", token, {
       httpOnly: false,
       maxAge: 60 * 24 * 60 * 60 * 1000,
-      sameSite: "lax",
+      sameSite: "none",
       path: "/",
       secure: process.env.NODE_ENV === "production",
     });
@@ -226,7 +228,7 @@ async function handleLogout(req, res) {
     res.cookie("token", "", {
       httpOnly: false,
       expires: new Date(0),
-      sameSite: "lax",
+      sameSite: "none",
       path: "/",
       secure: process.env.NODE_ENV === "production",
     });

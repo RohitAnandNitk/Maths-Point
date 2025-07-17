@@ -5,9 +5,12 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
-import Cookies from 'js-cookie';
-import {jwtDecode} from 'jwt-decode';
-import {useNavigate} from 'react-router-dom';
+import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
+
+import config from "../config";
+const BaseURL = config.BASE_URL;
 
 function Testimonial() {
   const navigate = useNavigate();
@@ -18,18 +21,18 @@ function Testimonial() {
     occupation: "Student",
     testimonial: "",
   });
-  
+
   // Get user data from token when component mounts
   useEffect(() => {
-    const token = Cookies.get('token');
-    if(token) {
+    const token = Cookies.get("token");
+    if (token) {
       try {
         const decoded = jwtDecode(token);
         setUserData(decoded);
         // Set the fullName from token data
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          fullName: decoded.fullname || ""
+          fullName: decoded.fullname || "",
         }));
       } catch (error) {
         console.error("Token decode error:", error);
@@ -37,14 +40,14 @@ function Testimonial() {
     }
   }, []);
 
-  const [testimonials, setTestimonials] = useState([]); 
+  const [testimonials, setTestimonials] = useState([]);
   const [error, setError] = useState(false);
 
   // Fetch testimonials from backend
   useEffect(() => {
     const fetchTestimonials = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/testimonials", {
+        const response = await fetch(`${BaseURL}/api/testimonials`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -71,14 +74,14 @@ function Testimonial() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5000/api/testimonials", {
+      const response = await fetch(`${BaseURL}/api/testimonials`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
         body: JSON.stringify({
-          user_id: userData?.id, // Use the ID from decoded token
+          user_id: userData?._id, // Use the ID from decoded token
           content: formData.testimonial,
           rating,
         }),
@@ -129,8 +132,8 @@ function Testimonial() {
                 name="fullName"
                 value={formData.fullName}
                 onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
-                disabled={userData !== null} 
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                disabled={userData !== null}
                 required
               />
             </div>
@@ -206,8 +209,8 @@ function Testimonial() {
       >
         <h2 className="font-bold text-3xl mb-3">What Our Students Say</h2>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Discover how Maths Point has helped thousands of students achieve their
-          academic goals.
+          Discover how Maths Point has helped thousands of students achieve
+          their academic goals.
         </p>
       </motion.div>
 
@@ -233,8 +236,8 @@ function Testimonial() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ 
-                  duration: 0.4, 
+                transition={{
+                  duration: 0.4,
                   delay: index * 0.1,
                   ease: "easeInOut",
                 }}
