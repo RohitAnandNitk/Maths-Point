@@ -8,8 +8,8 @@ import { useNavigate } from "react-router-dom";
 import config from "../config";
 const BaseURL = config.BASE_URL;
 
-
 function CreateTest() {
+  console.log("At create test page");
   const navigate = useNavigate();
   const [questions, setQuestions] = useState([1]);
   const [selectedFiles, setSelectedFiles] = useState({});
@@ -32,23 +32,36 @@ function CreateTest() {
     questionType: "",
     timeLimit: "",
   });
+  //get user info from the backend
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch(`${BaseURL}/api/user/check-auth`, {
+        credentials: "include", // Important for sending cookies
+      });
+      const data = await response.json();
+      return data?.user;
+    } catch (error) {
+      console.error(" Authetication error:", error);
+    }
+  };
 
   // Get user data from token when component mounts
   useEffect(() => {
-    const token = Cookies.get("token");
-    console.log("token in create test at frontend :", token);
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        console.log("User data is : ", decoded);
-        setUserData(decoded);
-      } catch (error) {
-        console.error("Token decode error:", error);
-        navigate("/signin"); // Redirect to signin if token is invalid
+    const fetchUserData = async () => {
+      const userInfo = await checkAuthStatus();
+      console.log("user data at create test ", userInfo);
+      if (userInfo) {
+        try {
+          setUserData(userInfo);
+        } catch (error) {
+          console.error("User data not found:", error);
+          navigate("/signin"); // Redirect to signin if token is invalid
+        }
+      } else {
+        navigate("/signin"); // Redirect to signin if no token
       }
-    } else {
-      navigate("/signin"); // Redirect to signin if no token
-    }
+    };
+    fetchUserData();
   }, [navigate]);
 
   const addQuestion = () => {

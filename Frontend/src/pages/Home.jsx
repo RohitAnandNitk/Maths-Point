@@ -7,6 +7,9 @@ import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
 
+import config from "../config";
+const BaseURL = config.BASE_URL;
+
 function Home() {
   const navigate = useNavigate();
 
@@ -21,24 +24,43 @@ function Home() {
     navigate("/exam");
   };
 
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch(`${BaseURL}/api/user/check-auth`, {
+        credentials: "include", // Important for sending cookies
+      });
+      const data = await response.json();
+      console.log("User role : ", data.user.role);
+      return data.user.role;
+    } catch (error) {
+      console.error("Auth check failed:", error);
+      return null;
+    }
+  };
+
   useEffect(() => {
-    const token = Cookies.get("token");
-    console.log("Token at home page :", token);
-    if (token) {
+    const fetchRoleAndSet = async () => {
       try {
-        const decoded = jwtDecode(token);
-        // Set the fullName from token data
-        if (decoded.role === "student") {
+        const user_role = await checkAuthStatus();
+        console.log("user role at home page : ", user_role);
+
+        if (user_role === "student") {
           setIsTeacher(false);
-        } else {
+        } else if (user_role) {
           setIsTeacher(true);
+        } else {
+          // fallback if no role
+          setIsTeacher(false);
         }
       } catch (error) {
         setIsTeacher(false);
         console.error("Token decode error:", error);
       }
-    }
+    };
+
+    fetchRoleAndSet();
   }, []);
+
   return (
     <motion.div>
       {/* Hero Section */}

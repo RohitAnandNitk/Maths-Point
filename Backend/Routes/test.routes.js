@@ -1,30 +1,29 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
 const {
-    getTests,
-    createTest,
-    getTestById,
-    updateTest,
-    deleteTest
-} = require('../Controllers/test.controller');
+  getTests,
+  createTest,
+  getTestById,
+  updateTest,
+  deleteTest,
+} = require("../Controllers/test.controller");
 
-console.log('Test routes loaded');
+console.log("Test routes loaded");
 
 // Get all tests
-router.get('/', getTests);
-
+router.get("/", getTests);
 
 // Get a single test by ID
-router.get('/:id', getTestById);
+router.get("/:id", getTestById);
 
 // Create a new test
-router.post('/', createTest);
+router.post("/", createTest);
 
 // Update a test
-router.put('/:id', updateTest);
+router.put("/:id", updateTest);
 
 // Delete a test
-router.delete('/:id', deleteTest);
+router.delete("/:id", deleteTest);
 
 module.exports = router;

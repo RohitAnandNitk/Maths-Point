@@ -19,29 +19,6 @@ function Navbar() {
   const navigate = useNavigate();
   const [user, setUser] = useState("");
   const [role, setRole] = useState("");
-  // Check auth status when component mounts
-  useEffect(() => {
-    checkAuthStatus();
-  }, []);
-
-  useEffect(() => {
-    const token = Cookies.get("token");
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setUser(
-          decoded.fullname.charAt(0).toUpperCase() +
-            decoded.fullname.slice(1).toLowerCase()
-        );
-        console.log(decoded.fullname);
-        setRole(decoded.role.charAt(0).toUpperCase());
-      } catch (error) {
-        setUser("");
-        setRole("");
-        console.error("Token decode error:", error);
-      }
-    }
-  }, []);
 
   const checkAuthStatus = async () => {
     try {
@@ -49,13 +26,43 @@ function Navbar() {
         credentials: "include", // Important for sending cookies
       });
       const data = await response.json();
-      console.log("is autjentic : ", data.isAuthenticated);
-      setIsAuthenticated(data.isAuthenticated);
+      console.log("is authentic : ", data.isAuthenticated);
+      console.log("User Data in checkauth:", data.user);
+      return data;
     } catch (error) {
-      console.error("Auth check failed:", error);
-      setIsAuthenticated(false);
+      console.error(" Authetication error:", error);
     }
   };
+
+  // Check auth status when component mounts
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const userData = await checkAuthStatus();
+      console.log("User Data in navbar:", userData?.user);
+
+      setIsAuthenticated(userData?.isAuthenticated);
+
+      const fullname = userData?.user?.fullname;
+
+      try {
+        if (fullname) {
+          setUser(
+            fullname.charAt(0).toUpperCase() + fullname.slice(1).toLowerCase()
+          );
+          setRole(userData?.user?.role?.charAt(0).toUpperCase());
+        } else {
+          setUser("");
+          setRole("");
+        }
+      } catch (error) {
+        setUser("");
+        setRole("");
+        console.error("Token decode error:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   //glass
   useEffect(() => {

@@ -13,22 +13,29 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
   const [isLoading, setIsLoading] = useState(true);
   const location = useLocation();
 
+  // get user data form the backend
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch(`${BaseURL}/api/user/check-auth`, {
+        credentials: "include", // Important for sending cookies
+      });
+      const data = await response.json();
+      console.log("is authentic : ", data.isAuthenticated);
+      console.log("User Data in checkauth:", data.user);
+      return data;
+    } catch (error) {
+      console.error(" Authetication error:", error);
+    }
+  };
+
   useEffect(() => {
     const checkAuth = async () => {
+      const userData = await checkAuthStatus();
+
       try {
-        // Check if token exists in cookies
-        const token = Cookies.get("token");
-
-        if (!token) {
-          setIsAuthenticated(false);
-          setIsLoading(false);
-          return;
-        }
-
         // Decode token to get user role
         try {
-          const decoded = jwtDecode(token);
-          setUserRole(decoded.role);
+          setUserRole(userData.user.role);
         } catch (error) {
           console.error("Token decode error:", error);
           setIsAuthenticated(false);
