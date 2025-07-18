@@ -282,6 +282,7 @@ async function checkAuth(req, res) {
         fullname: user.fullname,
         email: user.email,
         role: user.role,
+        activePlan: user.pricing_plans,
       },
     });
   } catch (error) {

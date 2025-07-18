@@ -1,12 +1,83 @@
-import React from 'react';
-import { Trophy, CheckCircle, Star } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import profile_image from "../assets/avatar.png";
+import config from "../config";
+
+const BaseURL = config.BASE_URL;
 
 function Profile() {
-    const navigate = useNavigate();
-    const handleEditProfile = ()=>{
-        navigate('/edit')
+  const navigate = useNavigate();
+  const [userData, setUserData] = useState(null);
+  const [testData, setTestData] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10; // 📄 items per page
+
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch(`${BaseURL}/api/user/check-auth`, {
+        credentials: "include",
+      });
+      const data = await response.json();
+      return data.user;
+    } catch (error) {
+      console.error("Auth check failed:", error);
+      return null;
     }
+  };
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const userInfo = await checkAuthStatus();
+      setUserData(userInfo);
+    };
+
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    const fetchResults = async () => {
+      try {
+        const res = await fetch(`${BaseURL}/attempt/get-all-attempts`, {
+          credentials: "include",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch attempts");
+
+        const data = await res.json();
+        setTestData(data.attempts || []);
+      } catch (err) {
+        console.error("Error fetching results:", err);
+      }
+    };
+
+    fetchResults();
+  }, []);
+
+  const handleEditProfile = () => navigate("/edit");
+
+  const calculateAverageScore = () => {
+    if (!testData.length) return 0;
+    const total = testData.reduce(
+      (sum, attempt) => sum + (attempt.score || 0),
+      0
+    );
+    return Math.round(total / testData.length);
+  };
+
+  const totalPages = Math.ceil(testData.length / pageSize);
+
+  const paginatedData = testData.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  const handlePrev = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
+  const handleNext = () =>
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="container mx-auto max-w-4xl">
@@ -15,19 +86,24 @@ function Profile() {
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center space-x-4">
               <div className="w-20 h-20">
-                <img 
-                  src="/api/placeholder/80/80" 
-                  alt="Profile" 
+                <img
+                  src={profile_image}
+                  alt="Profile"
                   className="w-full h-full rounded-full object-cover"
                 />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-800">Sarah Johnson</h1>
-                <p className="text-gray-600">sarah.johnson@email.com</p>
-                <p className="text-gray-500 text-sm">Student</p>
+                <h1 className="text-xl font-bold text-gray-800">
+                  {userData?.fullname || "Loading..."}
+                </h1>
+                <p className="text-gray-600">{userData?.email}</p>
+                <p className="text-gray-500 text-sm">{userData?.role}</p>
               </div>
             </div>
-            <button onClick={handleEditProfile} className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+            <button
+              onClick={handleEditProfile}
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+            >
               Edit Profile
             </button>
           </div>
@@ -36,21 +112,29 @@ function Profile() {
           <div className="grid grid-cols-3 gap-4 mb-6 text-center">
             <div>
               <p className="text-gray-600">Tests Taken</p>
-              <p className="text-2xl font-bold text-gray-800">24</p>
+              <p className="text-2xl font-bold text-gray-800">
+                {testData.length}
+              </p>
             </div>
             <div>
               <p className="text-gray-600">Average Score</p>
-              <p className="text-2xl font-bold text-green-600">85%</p>
+              <p className="text-2xl font-bold text-green-600">
+                {calculateAverageScore()}%
+              </p>
             </div>
             <div>
               <p className="text-gray-600">Active Plans</p>
-              <p className="text-2xl font-bold text-gray-800">2</p>
+              <p className="text-2xl font-bold text-gray-800">
+                {userData?.activePlan?.length || 0}
+              </p>
             </div>
           </div>
 
           {/* Test History */}
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Test History</h2>
+          <div>
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">
+              Test History
+            </h2>
             <table className="w-full">
               <thead className="bg-gray-100">
                 <tr>
@@ -61,29 +145,89 @@ function Profile() {
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-b">
-                  <td className="p-2">Mathematics Final</td>
-                  <td className="p-2 text-center text-green-600">92%</td>
-                  <td className="p-2 text-center">Mar 15, 2025</td>
-                  <td className="p-2 text-right">
-                    <button className="text-blue-500 hover:underline">View</button>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-2">Science Quiz</td>
-                  <td className="p-2 text-center text-green-600">88%</td>
-                  <td className="p-2 text-center">Mar 10, 2025</td>
-                  <td className="p-2 text-right">
-                    <button className="text-blue-500 hover:underline">View</button>
-                  </td>
-                </tr>
+                {paginatedData.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="p-4 text-center text-gray-500">
+                      No test history available.
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedData.map((attempt, index) => (
+                    <tr key={index} className="border-b">
+                      <td className="p-2">
+                        {attempt.test_id?.name || "Untitled Test"}
+                      </td>
+                      <td className="p-2 text-center text-green-600">
+                        {attempt.score ?? "N/A"}
+                      </td>
+                      <td className="p-2 text-center">
+                        {new Date(attempt.createdAt).toLocaleDateString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          }
+                        )}
+                      </td>
+                      <td className="p-2 text-right">
+                        <button className="text-blue-500 hover:underline">
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
-          </div>
 
-          {/* Achievements */}
-          <div>
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Achievements</h2>
+            {/* Pagination Controls */}
+            {testData.length > pageSize && (
+              <div className="flex justify-center mt-4 space-x-2">
+                <button
+                  onClick={handlePrev}
+                  disabled={currentPage === 1}
+                  className={`px-3 py-1 rounded ${
+                    currentPage === 1
+                      ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                      : "bg-blue-500 text-white hover:bg-blue-600"
+                  }`}
+                >
+                  Previous
+                </button>
+                <span className="px-3 py-1 text-gray-700">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={handleNext}
+                  disabled={currentPage === totalPages}
+                  className={`px-3 py-1 rounded ${
+                    currentPage === totalPages
+                      ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                      : "bg-blue-500 text-white hover:bg-blue-600"
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Profile;
+
+{
+  /* Achievements */
+}
+{
+  /* <div>
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">
+              Achievements
+            </h2>
             <div className="flex space-x-4">
               <div className="text-center">
                 <div className="bg-blue-100 rounded-full p-3 inline-block">
@@ -104,19 +248,19 @@ function Profile() {
                 <p className="mt-2 text-sm text-gray-600">Excellence</p>
               </div>
             </div>
-          </div>
+          </div> */
+}
 
-          {/* Performance Overview */}
-          <div className="mt-6">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Performance Overview</h2>
+{
+  /* Performance Overview */
+}
+{
+  /* <div className="mt-6">
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">
+              Performance Overview
+            </h2>
             <div className="bg-gray-100 rounded-lg p-4 text-center text-gray-500">
               Performance graph will be displayed here
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+          </div> */
 }
-
-export default Profile;
