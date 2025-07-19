@@ -6,6 +6,7 @@ import { rippleEffect } from "../utils/rippleEffect";
 import emailjs from "@emailjs/browser";
 import neetesh_image from "../assets/image1.png";
 import rohit_image from "../assets/rohit.jpg";
+import rahul_image from "../assets/rahul_image.jpg";
 
 export default function About() {
   const form = useRef();
@@ -49,9 +50,15 @@ export default function About() {
     },
     {
       name: "Rohit Anand",
-      role: "Head of Product",
-      description: "Maths Point Web App Developer",
+      role: "Web Developer",
+      description: "NITK Surathkal",
       image: rohit_image, // Add actual image path
+    },
+    {
+      name: "Rahul Kumar",
+      role: "Web Developer",
+      description: "NITK Surathkal",
+      image: rahul_image, // Add actual image path
     },
   ];
 
