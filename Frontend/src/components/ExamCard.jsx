@@ -6,6 +6,9 @@ import { Trash2 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
 
+import config from "../config";
+const BaseURL = config.BASE_URL;
+
 const ExamCard = ({ exam, onDelete }) => {
   const navigate = useNavigate();
   const [isTeacher, setIsTeacher] = useState(false);
@@ -15,22 +18,42 @@ const ExamCard = ({ exam, onDelete }) => {
     navigate("/test");
   };
 
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch(`${BaseURL}/api/user/check-auth`, {
+        credentials: "include", // Important for sending cookies
+      });
+      const data = await response.json();
+      console.log("User role : ", data.user.role);
+      return data.user.role;
+    } catch (error) {
+      console.error("Auth check failed:", error);
+      return null;
+    }
+  };
+
   // fetch the user type
   useEffect(() => {
-    const token = Cookies.get("token");
-    if (token) {
+    const fetchRoleAndSet = async () => {
       try {
-        const decoded = jwtDecode(token);
-        if (decoded.role === "teacher") {
+        const user_role = await checkAuthStatus();
+        console.log("user role at home page : ", user_role);
+
+        if (user_role === "student") {
+          setIsTeacher(false);
+        } else if (user_role) {
           setIsTeacher(true);
         } else {
+          // fallback if no role
           setIsTeacher(false);
         }
       } catch (error) {
         setIsTeacher(false);
-        console.error("Token decode error:", error);
+        console.error("User data fetch error:", error);
       }
-    }
+    };
+
+    fetchRoleAndSet();
   }, []);
 
   return (
@@ -78,17 +101,13 @@ const ExamCard = ({ exam, onDelete }) => {
         >
           Start Exam
         </button>
-
-        {/* Bottom delete button (only if teacher) */}
-        {isTeacher && (
-          <button
-            className="ripple-container bg-red-500 text-white py-1.5 px-4 rounded-md 
-                     hover:bg-red-600 transition-colors flex-1 text-sm font-medium"
-            onClick={() => onDelete(exam.id)}
-          >
-            Delete
-          </button>
-        )}
+        <button
+          className="ripple-container bg-purple-500 text-white py-1.5 px-4 rounded-md 
+                    hover:bg-purple-600 transition-colors flex-1 text-sm font-medium"
+          onClick={() => navigate(`/leaderboard/${exam.id}`)}
+        >
+          View Leaderboard
+        </button>
       </div>
     </motion.div>
   );

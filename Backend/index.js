@@ -10,6 +10,7 @@ const cors = require("cors");
 
 //
 const attemptRouter = require("./Routes/attempts.routes");
+const leaderboardRouter = require("./Routes/leaderboard.routes");
 
 require("dotenv").config();
 
@@ -51,6 +52,9 @@ app.use("/api/questions", questionRouter);
 
 //Use the Attempts router
 app.use("/attempt", attemptRouter);
+
+// Leaderboard router
+app.use("/leaderboard", leaderboardRouter);
 
 // Global error handler
 app.use((err, req, res, next) => {

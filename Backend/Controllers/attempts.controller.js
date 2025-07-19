@@ -8,11 +8,10 @@ const mongoose = require("mongoose");
 exports.saveAttempt = async (req, res) => {
   console.log("Call for the save attempt");
   try {
-    const userId = req.user._id; // Assuming you’re using auth middleware and setting req.user
+    const userId = req.user._id;
     console.log("User Id : ", userId);
-    const { test_id, answers } = req.body;
 
-    console.log(answers);
+    const { test_id, answers, duration_seconds } = req.body;
 
     if (!test_id || !answers || !Array.isArray(answers)) {
       return res
@@ -48,6 +47,7 @@ exports.saveAttempt = async (req, res) => {
       test_id: test_id,
       answers: evaluatedAnswers,
       score,
+      duration_seconds, // ✅ Save time taken
       completed_at: new Date(),
     });
 

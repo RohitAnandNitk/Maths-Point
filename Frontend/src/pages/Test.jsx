@@ -161,7 +161,7 @@ const Test = () => {
       const payload = {
         test_id: testData._id,
         answers: answersForBackend,
-        time_taken: timeTakenSeconds, // optional if backend expects
+        duration_seconds: timeTakenSeconds, // ✅ match schema field
       };
 
       // 🧪 debug logs

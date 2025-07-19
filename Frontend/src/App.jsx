@@ -22,6 +22,7 @@ import Cookies from "js-cookie";
 import ForgotPasswordCard from "./components/ForgotPasswordCard";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
+import LeaderboardPage from "./pages/Leaderboard";
 
 import config from "./config";
 const BaseURL = config.BASE_URL;
@@ -125,6 +126,14 @@ function App() {
             />
             <Route path="/error" element={<Error />} />
             <Route path="*" element={<Error />} />
+            <Route
+              path="/leaderboard/:examId"
+              element={
+                // <ProtectedRoute>
+                <LeaderboardPage />
+                // </ProtectedRoute>
+              }
+            />
           </Routes>
         </main>
         <Footer />

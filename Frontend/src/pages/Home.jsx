@@ -54,7 +54,7 @@ function Home() {
         }
       } catch (error) {
         setIsTeacher(false);
-        console.error("Token decode error:", error);
+        console.error("User data fetch error:", error);
       }
     };
 
